@@ -17,7 +17,11 @@ module.exports = (app, passport) => {
 
     app.get('/userList', middleware.isLoggedIn, (req, res) => {
         models.UserData.findAll({
-            include: [models.UserTodo]
+            include: [{
+                model: models.UserTodo,
+                include: [{ model: models.comments }]
+            }],
+            order: [['id', 'ASC']]
         }).then((users) => {
             res.send('User List: ' + JSON.stringify(users))
         })
@@ -84,6 +88,22 @@ module.exports = (app, passport) => {
             }
             else {
                 res.status(404).json({ message: "Record not found" })
+            }
+        }).catch(function (error) {
+            res.status(500).json(error);
+        });
+    });
+
+    app.post('/tasks/comments', middleware.isLoggedIn, middleware.isAuthenticatedUser, function (req, res) {
+        models.comments.create({
+            content: req.body.content,
+            commenter_username: req.body.commenter_username,
+            commenter_email: req.body.commenter_email,
+            status: req.body.status,
+            UserTodoId: req.body.UserTodoId,
+        }).then(function (success) {
+            if (success) {
+                res.status(200).json({ message: "Comment successfully" });
             }
         }).catch(function (error) {
             res.status(500).json(error);

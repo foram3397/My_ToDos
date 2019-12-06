@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {});
   UserTodo.associate = function (models) {
     // associations can be defined here
+    models.UserTodo.hasMany(models.comments);
     models.UserTodo.belongsTo(models.UserData, {
       onDelete: "CASCADE",
       foreignKey: {
