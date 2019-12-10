@@ -36,7 +36,7 @@ module.exports = function (passport, models) {
                 var data = {
                     email: email,
                     password: password,
-                    name: req.body.name,
+                    name: req.body.first_name + req.body.last_name,
                     phoneNo: req.body.phoneNo
                 };
 

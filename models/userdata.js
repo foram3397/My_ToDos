@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {});
   UserData.associate = function (models) {
     // associations can be defined here
-    models.UserData.hasMany(models.UserTodo)
+    models.UserData.hasMany(models.UserTodo);
   };
   return UserData;
 };

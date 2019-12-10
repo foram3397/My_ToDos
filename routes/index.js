@@ -1,5 +1,34 @@
 var models = require('../models');
 var middleware = require('../middleware');
+var Handlebars = require('handlebars');
+
+getRandomList = () => {
+    let list = ["abc", "def", "ghi", "jakj", "ashu"];
+    let limit = Math.floor(Math.random() * (list.length - 1 - 0) + 1);
+
+    return list.slice(limit);
+}
+
+var context = {
+    "name": "Foram"
+}
+
+var c = {
+    "language": "Handlebars",
+    "adjective": "awesome"
+}
+var countries = {
+    "countries": []
+}
+
+var data = {
+    node: [
+        { name: 'express', url: 'http://expressjs.com/' },
+        { name: 'hapi', url: 'http://spumko.github.io/' },
+        { name: 'compound', url: 'http://compoundjs.com/' },
+        { name: 'derby', url: 'http://derbyjs.com/' }
+    ]
+}
 
 module.exports = (app, passport) => {
 
@@ -7,8 +36,16 @@ module.exports = (app, passport) => {
 
     middleware.init(app);
 
+
+    app.get('/', (req, res) => {
+        let people = getRandomList();
+        console.log(req.body)
+
+        res.render('index', { c: c, context: context, people: people, countries: countries, data: data });
+    })
+
     app.post('/signup', passport.authenticate('local-signup'), (req, res) => {
-        res.send(req.user);
+        res.json(req.user);
     });
 
     app.post('/login', passport.authenticate('local-signin'), (req, res) => {
@@ -23,7 +60,7 @@ module.exports = (app, passport) => {
             }],
             order: [['id', 'ASC']]
         }).then((users) => {
-            res.send('User List: ' + JSON.stringify(users))
+            res.json(users)
         })
     });
 
@@ -109,4 +146,54 @@ module.exports = (app, passport) => {
             res.status(500).json(error);
         });
     });
+
+    app.post('/project', function (req, res) {
+        models.User.create({
+            firstname: "Jack",
+            lastname: "Davis",
+            age: 37
+        }).then(jack => {
+            let users = [jack];
+
+            return models.User.create({
+                firstname: "Mary",
+                lastname: "Taylor",
+                age: 21
+            }).then(mary => {
+                users.push(mary);
+                return users;
+            })
+        }).then(users => {
+            models.Project.create({
+                code: 'P-123',
+                name: 'JSA - Branding Development'
+            }).then(p123 => {
+                p123.setWorkers(users);
+            })
+
+            models.Project.create({
+                code: 'P-456',
+                name: 'JSA - DataEntry Development'
+            }).then(p456 => {
+                p456.setWorkers(users);
+            })
+        }).then(() => {
+            res.send("OK");
+        });
+    });
+
+    app.get('/getProject', (req, res) => {
+        models.Project.findAll({
+            attributes: ['code', 'name'],
+            include: [{
+                model: models.User, as: 'Workers',
+                attributes: [['firstname', 'name'], 'age'],
+                through: {
+                    attributes: ['projectId', 'userId'],
+                }
+            }]
+        }).then(projects => {
+            res.send(projects);
+        });
+    })
 };
