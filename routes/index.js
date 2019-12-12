@@ -1,33 +1,58 @@
 var models = require('../models');
 var middleware = require('../middleware');
 var Handlebars = require('handlebars');
+var Sequelize = require('sequelize')
+const Op = Sequelize.Op;
+var db = require('../models/index');
 
-getRandomList = () => {
-    let list = ["abc", "def", "ghi", "jakj", "ashu"];
-    let limit = Math.floor(Math.random() * (list.length - 1 - 0) + 1);
+checkParams = (req, res) => {
+    if (req.query.filter == 1) {
+        req.checkQuery({
+            startDate: {
+                notEmpty: true,
+                errorMessage: "Start Date is required"
+            },
+            endDate: {
+                notEmpty: true,
+                errorMessage: "End Date is required"
+            }
+        });
 
-    return list.slice(limit);
+        var errors = req.validationErrors();
+
+        if (errors) {
+            res.status(400).json(errors);
+
+        }
+    }
 }
 
-var context = {
-    "name": "Foram"
-}
+getWhereCondition = (req, res) => {
+    var query = req.query;
+    checkParams(req, res);
 
-var c = {
-    "language": "Handlebars",
-    "adjective": "awesome"
-}
-var countries = {
-    "countries": []
-}
+    let currentMonth = (new Date().getMonth() + 1) < 10 ? '0' + (new Date().getMonth() + 1) : (new Date().getMonth() + 1);
 
-var data = {
-    node: [
-        { name: 'express', url: 'http://expressjs.com/' },
-        { name: 'hapi', url: 'http://spumko.github.io/' },
-        { name: 'compound', url: 'http://compoundjs.com/' },
-        { name: 'derby', url: 'http://derbyjs.com/' }
-    ]
+    let whereStatement = Sequelize.and(
+        query.search ? {
+            [Op.or]: [
+                {
+                    '$UserData.name$': { [Op.like]: '%' + query.search + '%' }
+                }, {
+                    '$UserTodos.taskName$': { [Op.like]: '%' + query.search + '%' }
+                }
+            ]
+        } : null,
+        query.filter ?
+            (query.filter == 0) ?
+                [{}, db.sequelize.where(db.sequelize.fn("month", db.sequelize.col("UserData.createdAt")), currentMonth)]
+                : (query.filter == 1) ?
+                    { createdAt: { [Op.between]: [query.startDate, query.endDate] } }
+                    : null
+            : null
+    );
+
+    return whereStatement;
 }
 
 module.exports = (app, passport) => {
@@ -38,18 +63,19 @@ module.exports = (app, passport) => {
 
 
     app.get('/', (req, res) => {
-        let people = getRandomList();
-        console.log(req.body)
-
-        res.render('index', { c: c, context: context, people: people, countries: countries, data: data });
+        res.render('index');
     })
 
     app.post('/signup', passport.authenticate('local-signup'), (req, res) => {
         res.json(req.user);
     });
 
+    app.get('/login', (req, res) => {
+        res.render('login');
+    })
+
     app.post('/login', passport.authenticate('local-signin'), (req, res) => {
-        res.send(req.user);
+        res.redirect('/userList');
     });
 
     app.get('/userList', middleware.isLoggedIn, (req, res) => {
@@ -60,7 +86,20 @@ module.exports = (app, passport) => {
             }],
             order: [['id', 'ASC']]
         }).then((users) => {
-            res.json(users)
+            res.send(JSON.stringify(users));
+        })
+    });
+
+    app.get('/getUser', (req, res) => {
+        models.UserData.findAll({
+            include: [{
+                model: models.UserTodo,
+                include: [{ model: models.comments }],
+            }],
+            order: [['id', 'ASC']],
+            where: getWhereCondition(req, res)
+        }).then((users) => {
+            res.json(users);
         })
     });
 

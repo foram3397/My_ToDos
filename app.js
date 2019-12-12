@@ -1,9 +1,11 @@
 var express = require('express');
+var validator = require('express-validator');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var passport = require('passport');
 var session = require('express-session');
+
 
 var models = require('./models');
 
@@ -11,9 +13,10 @@ var app = express();
 
 app.set('views', path.join(__dirname, "views"));
 app.set("view engine", "hbs");
+app.use(bodyParser.json({ defaultCharset: "utf-8", limit: "50mb" }));
+app.use(bodyParser.urlencoded({ extended: false, limit: "50mb" }));
+app.use(validator());
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
