@@ -6,7 +6,6 @@ var bodyParser = require('body-parser');
 var passport = require('passport');
 var session = require('express-session');
 
-
 var models = require('./models');
 
 var app = express();
@@ -30,16 +29,16 @@ require('./routes/index.js')(app, passport);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-    var err = new Error('Not Found');
+    var err = new Error();
     err.status = 404;
+    err.message = "Invalid url"
     next(err);
 });
 
 // error handler
 // no stacktraces leaked to user unless in development environment
 app.use(function (err, req, res, next) {
-    res.status(err.status || 500);
-    res.send('error: ' + err.message);
+    res.status(err.status || 500).json(err);
 });
 
 module.exports = app;

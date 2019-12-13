@@ -1,0 +1,192 @@
+define({ "api": [
+  {
+    "type": "post",
+    "url": "/login",
+    "title": "Login user",
+    "name": "Login",
+    "group": "Login",
+    "version": "1.0.0",
+    "description": "<p>Login user</p>",
+    "examples": [
+      {
+        "title": "Example usage:",
+        "content": "\nurl: /login\nbody: {\n    \"email\":\"abc@gmail.com\",\n    \"password\":\"abc@1234\"\n}",
+        "type": "json"
+      }
+    ],
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "email",
+            "description": "<p>email.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "password",
+            "description": "<p>password.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "object",
+            "optional": false,
+            "field": "payload",
+            "description": "<p>Login user Data.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response",
+          "content": "{\n     \"id\":1,\n     \"email\": \"abc@gmail.com\",\n     \"password\": \"abc@1234\",\n     \"name\": \"abc def\",\n     \"phoneNo\": \"1234567895\",\n     \"updatedAt\": \"2019-12-13T07:18:14.660Z\",\n     \"createdAt\": \"2019-12-13T07:18:14.660Z\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/index.js",
+    "groupTitle": "Login"
+  },
+  {
+    "type": "get",
+    "url": "/loginView",
+    "title": "A. Login -GET",
+    "name": "Login_View",
+    "group": "Login_View",
+    "version": "1.0.0",
+    "description": "<p>Renders HTML view of the Login form</p>",
+    "filename": "routes/index.js",
+    "groupTitle": "Login_View"
+  },
+  {
+    "type": "post",
+    "url": "/signUp",
+    "title": "Register a new user",
+    "name": "SignUp",
+    "group": "SignUp",
+    "version": "1.0.0",
+    "description": "<p>Create or register a new user</p>",
+    "examples": [
+      {
+        "title": "Example usage:",
+        "content": "\nurl: /signUp\nbody: {\n    \"first_name\": \"abc\",\n    \"last_name\": \"def\",\n    \"password\": \"abc@1234\",\n    \"email\":\"abc@gmail.com\",\n    \"phoneNo\": \"1234567895\"\n}",
+        "type": "json"
+      }
+    ],
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "first_name",
+            "description": "<p>first_name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "last_name",
+            "description": "<p>last_name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "password",
+            "description": "<p>password.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "email",
+            "description": "<p>email.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "phoneNo",
+            "description": "<p>phoneNo.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "object",
+            "optional": false,
+            "field": "payload",
+            "description": "<p>Signup user Data.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response",
+          "content": "{\n     \"id\":1,\n     \"email\": \"abc@gmail.com\",\n     \"password\": \"abc@1234\",\n     \"name\": \"abc def\",\n     \"phoneNo\": \"1234567895\",\n     \"updatedAt\": \"2019-12-13T07:18:14.660Z\",\n     \"createdAt\": \"2019-12-13T07:18:14.660Z\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/index.js",
+    "groupTitle": "SignUp"
+  },
+  {
+    "type": "get",
+    "url": "/signup",
+    "title": "A. Signup -GET",
+    "name": "Signup",
+    "group": "Signup",
+    "version": "1.0.0",
+    "description": "<p>Renders HTML view of the Sign Up form</p>",
+    "filename": "routes/index.js",
+    "groupTitle": "Signup"
+  },
+  {
+    "type": "get",
+    "url": "/userList",
+    "title": "List all users",
+    "name": "User_list",
+    "group": "User_list",
+    "version": "1.0.0",
+    "description": "<p>List all the users data</p>",
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Object[]",
+            "optional": false,
+            "field": "payload",
+            "description": "<p>User's list</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response",
+          "content": "[\n    {\n        \"id\": 1,\n        \"name\": \"raj\",\n        \"email\": \"raj@gmail.com\",\n        \"password\": \"raj@1234\",\n        \"phoneNo\": \"123456778\",\n        \"createdAt\": \"2019-12-05T08:28:18.000Z\",\n        \"updatedAt\": \"2019-12-05T08:28:18.000Z\",\n        \"UserTodos\": []\n    },\n    {\n        \"id\": 2,\n        \"name\": \"johnho\",\n        \"email\": \"john@gmail.com\",\n        \"password\": \"john@1234\",\n        \"phoneNo\": \"123456778\",\n        \"createdAt\": \"2019-12-05T08:30:01.000Z\",\n        \"updatedAt\": \"2019-12-05T08:30:01.000Z\",\n        \"UserTodos\": [\n            {\n                \"id\": 10,\n                \"taskName\": \"create  app\",\n                \"taskContent\": \"react app is very easy to create and it should require login\",\n                \"createdAt\": \"2019-12-06T08:11:35.000Z\",\n                \"updatedAt\": \"2019-12-06T08:11:35.000Z\",\n                \"UserDatumId\": 2,\n                \"comments\": [\n                    {\n                        \"id\": 5,\n                        \"content\": \"hello\",\n                        \"commenter_username\": \"abc\",\n                        \"commenter_email\": \"abc@gmail.com\",\n                        \"status\": \"approved\",\n                        \"createdAt\": \"2019-12-06T08:13:02.000Z\",\n                        \"updatedAt\": \"2019-12-06T08:13:02.000Z\",\n                        \"UserTodoId\": 10\n                    }\n                ]\n            },\n            {\n                \"id\": 11,\n                \"taskName\": \"create  demo app\",\n                \"taskContent\": \"react app is very easy to create and it should require login\",\n                \"createdAt\": \"2019-12-06T08:12:02.000Z\",\n                \"updatedAt\": \"2019-12-06T08:12:02.000Z\",\n                \"UserDatumId\": 2,\n                \"comments\": []\n            }\n        ]\n    },\n]",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/index.js",
+    "groupTitle": "User_list"
+  }
+] });

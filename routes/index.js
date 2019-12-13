@@ -1,238 +1,200 @@
-var models = require('../models');
 var middleware = require('../middleware');
-var Handlebars = require('handlebars');
-var Sequelize = require('sequelize')
-const Op = Sequelize.Op;
-var db = require('../models/index');
-
-checkParams = (req, res) => {
-    if (req.query.filter == 1) {
-        req.checkQuery({
-            startDate: {
-                notEmpty: true,
-                errorMessage: "Start Date is required"
-            },
-            endDate: {
-                notEmpty: true,
-                errorMessage: "End Date is required"
-            }
-        });
-
-        var errors = req.validationErrors();
-
-        if (errors) {
-            res.status(400).json(errors);
-
-        }
-    }
-}
-
-getWhereCondition = (req, res) => {
-    var query = req.query;
-    checkParams(req, res);
-
-    let currentMonth = (new Date().getMonth() + 1) < 10 ? '0' + (new Date().getMonth() + 1) : (new Date().getMonth() + 1);
-
-    let whereStatement = Sequelize.and(
-        query.search ? {
-            [Op.or]: [
-                {
-                    '$UserData.name$': { [Op.like]: '%' + query.search + '%' }
-                }, {
-                    '$UserTodos.taskName$': { [Op.like]: '%' + query.search + '%' }
-                }
-            ]
-        } : null,
-        query.filter ?
-            (query.filter == 0) ?
-                [{}, db.sequelize.where(db.sequelize.fn("month", db.sequelize.col("UserData.createdAt")), currentMonth)]
-                : (query.filter == 1) ?
-                    { createdAt: { [Op.between]: [query.startDate, query.endDate] } }
-                    : null
-            : null
-    );
-
-    return whereStatement;
-}
+var authController = require("../controllers/auth.controller");
+var mainController = require("../controllers/mainController");
 
 module.exports = (app, passport) => {
 
-    let user = models.UserData;
-
+    authController.init(app);
+    mainController.init(app);
     middleware.init(app);
 
+    /**
+     * @api {get} /signup A. Signup -GET
+     * @apiName Signup
+     * @apiGroup Signup
+     * @apiVersion 1.0.0
+     * 
+     * @apiDescription
+     * Renders HTML view of the Sign Up form
+     * 
+     */
 
-    app.get('/', (req, res) => {
-        res.render('index');
-    })
+    app.get('/signup', authController.renderIndex);
 
-    app.post('/signup', passport.authenticate('local-signup'), (req, res) => {
-        res.json(req.user);
-    });
+    /**
+     * @api {post} /signUp Register a new user
+     * @apiName SignUp
+     * @apiGroup SignUp
+     * @apiVersion 1.0.0
+     * 
+     * @apiDescription
+     * Create or register a new user
+     * 
+     * @apiExample Example usage:
+     * 
+     *  url: /signUp
+     *  body: {
+     *      "first_name": "abc",
+     *      "last_name": "def",
+     *      "password": "abc@1234",
+     *      "email":"abc@gmail.com",
+     *      "phoneNo": "1234567895"
+     *  }
+     * 
+     * @apiParam {String} first_name      first_name.
+     * @apiParam {String} last_name       last_name.
+     * @apiParam {String} password        password.
+     * @apiParam {String} email           email.
+     * @apiParam {String} phoneNo         phoneNo.
+     * 
+     * @apiSuccess {object} payload       Signup user Data.
+     * 
+     * @apiSuccessExample Success Response
+     * {
+     *      "id":1,
+     *      "email": "abc@gmail.com",
+     *      "password": "abc@1234",
+     *      "name": "abc def",
+     *      "phoneNo": "1234567895",
+     *      "updatedAt": "2019-12-13T07:18:14.660Z",
+     *      "createdAt": "2019-12-13T07:18:14.660Z"
+     * }
+     * 
+     */
 
-    app.get('/login', (req, res) => {
-        res.render('login');
-    })
+    app.post('/signUp', passport.authenticate('local-signup'), authController.renderSignup);
 
-    app.post('/login', passport.authenticate('local-signin'), (req, res) => {
-        res.redirect('/userList');
-    });
+    /**
+     * @api {get} /loginView A. Login -GET
+     * @apiName Login View
+     * @apiGroup Login View
+     * @apiVersion 1.0.0
+     * 
+     * @apiDescription
+     * Renders HTML view of the Login form
+     * 
+     */
 
-    app.get('/userList', middleware.isLoggedIn, (req, res) => {
-        models.UserData.findAll({
-            include: [{
-                model: models.UserTodo,
-                include: [{ model: models.comments }]
-            }],
-            order: [['id', 'ASC']]
-        }).then((users) => {
-            res.send(JSON.stringify(users));
-        })
-    });
+    app.get('/loginView', authController.renderLoginView);
 
-    app.get('/getUser', (req, res) => {
-        models.UserData.findAll({
-            include: [{
-                model: models.UserTodo,
-                include: [{ model: models.comments }],
-            }],
-            order: [['id', 'ASC']],
-            where: getWhereCondition(req, res)
-        }).then((users) => {
-            res.json(users);
-        })
-    });
+    /**
+     * @api {post} /login Login user
+     * @apiName Login
+     * @apiGroup Login
+     * @apiVersion 1.0.0
+     * 
+     * @apiDescription
+     * Login user
+     * 
+     * @apiExample Example usage:
+     * 
+     *  url: /login
+     *  body: {
+     *      "email":"abc@gmail.com",
+     *      "password":"abc@1234"
+     *  }
+     *
+     * @apiParam {String} email           email. 
+     * @apiParam {String} password        password.
+     * 
+     * @apiSuccess {object} payload       Login user Data.
+     * 
+     * @apiSuccessExample Success Response
+     * {
+     *      "id":1,
+     *      "email": "abc@gmail.com",
+     *      "password": "abc@1234",
+     *      "name": "abc def",
+     *      "phoneNo": "1234567895",
+     *      "updatedAt": "2019-12-13T07:18:14.660Z",
+     *      "createdAt": "2019-12-13T07:18:14.660Z"
+     * }
+     * 
+     */
 
-    app.post('/create', middleware.isLoggedIn, function (req, res) {
-        user.findOne({
-            where: {
-                email: req.body.email
+    app.post('/login', passport.authenticate('local-signin'), authController.renderLogin);
+
+    /**
+     * @api {get} /userList List all users
+     * @apiName User list
+     * @apiGroup User list
+     * @apiVersion 1.0.0
+     * 
+     * @apiDescription
+     * List all the users data
+     * 
+     * @apiSuccess {Object[]} payload     User's list
+     * @apiSuccessExample Success Response
+     * [
+    {
+        "id": 1,
+        "name": "raj",
+        "email": "raj@gmail.com",
+        "password": "raj@1234",
+        "phoneNo": "123456778",
+        "createdAt": "2019-12-05T08:28:18.000Z",
+        "updatedAt": "2019-12-05T08:28:18.000Z",
+        "UserTodos": []
+    },
+    {
+        "id": 2,
+        "name": "johnho",
+        "email": "john@gmail.com",
+        "password": "john@1234",
+        "phoneNo": "123456778",
+        "createdAt": "2019-12-05T08:30:01.000Z",
+        "updatedAt": "2019-12-05T08:30:01.000Z",
+        "UserTodos": [
+            {
+                "id": 10,
+                "taskName": "create  app",
+                "taskContent": "react app is very easy to create and it should require login",
+                "createdAt": "2019-12-06T08:11:35.000Z",
+                "updatedAt": "2019-12-06T08:11:35.000Z",
+                "UserDatumId": 2,
+                "comments": [
+                    {
+                        "id": 5,
+                        "content": "hello",
+                        "commenter_username": "abc",
+                        "commenter_email": "abc@gmail.com",
+                        "status": "approved",
+                        "createdAt": "2019-12-06T08:13:02.000Z",
+                        "updatedAt": "2019-12-06T08:13:02.000Z",
+                        "UserTodoId": 10
+                    }
+                ]
+            },
+            {
+                "id": 11,
+                "taskName": "create  demo app",
+                "taskContent": "react app is very easy to create and it should require login",
+                "createdAt": "2019-12-06T08:12:02.000Z",
+                "updatedAt": "2019-12-06T08:12:02.000Z",
+                "UserDatumId": 2,
+                "comments": []
             }
-        }).then((result) => {
-            if (result) {
-                res.status(404).json({ message: "Email already taken" });
-            } else {
-                var data = {
-                    email: req.body.email,
-                    password: req.body.password,
-                    name: req.body.name,
-                    phoneNo: req.body.phoneNo
-                };
-                user.create(data).then(function () {
-                    res.status(200).json({ message: "User created successfully" });
-                });
-            }
-        })
-    })
+        ]
+    },
+]
+     */
 
-    app.delete('/destroy', middleware.isLoggedIn, middleware.isAuthenticatedUser, function (req, res) {
-        models.UserData.destroy({
-            where: {
-                id: req.body.user_id
-            }
-        }).then(function (success) {
-            if (success === 1) {
-                res.status(200).json({ message: "Deleted successfully" });
-            }
-        });
-    });
+    app.get('/userList', middleware.isLoggedIn, mainController.renderUserList);
 
-    app.post('/tasks/create', middleware.isLoggedIn, middleware.isAuthenticatedUser, function (req, res) {
-        models.UserTodo.create({
-            taskName: req.body.taskName,
-            taskContent: req.body.taskContent,
-            UserDatumId: req.body.user_id
-        }).then(function (success) {
-            if (success === 1) {
-                res.status(200).json({ message: "Task created successfully" });
-            }
-        }).catch(function (error) {
-            res.status(500).json(error);
-        });
-    });
+    app.get('/getUser', mainController.renderGetUser);
 
-    app.delete('/tasks/destroy', middleware.isLoggedIn, middleware.isAuthenticatedUser, function (req, res) {
-        let msg = '';
-        models.UserTodo.destroy({
-            where: {
-                UserDatumId: req.body.user_id,
-                id: req.body.task_id
-            }
-        }).then(function (success) {
-            if (success === 1) {
-                res.status(200).json({ message: "Deleted successfully" });
-            }
-            else {
-                res.status(404).json({ message: "Record not found" })
-            }
-        }).catch(function (error) {
-            res.status(500).json(error);
-        });
-    });
+    app.post('/create', middleware.isLoggedIn, mainController.createUser);
 
-    app.post('/tasks/comments', middleware.isLoggedIn, middleware.isAuthenticatedUser, function (req, res) {
-        models.comments.create({
-            content: req.body.content,
-            commenter_username: req.body.commenter_username,
-            commenter_email: req.body.commenter_email,
-            status: req.body.status,
-            UserTodoId: req.body.UserTodoId,
-        }).then(function (success) {
-            if (success) {
-                res.status(200).json({ message: "Comment successfully" });
-            }
-        }).catch(function (error) {
-            res.status(500).json(error);
-        });
-    });
+    app.delete('/destroy', middleware.isLoggedIn, middleware.isAuthenticatedUser, mainController.destroyUser);
 
-    app.post('/project', function (req, res) {
-        models.User.create({
-            firstname: "Jack",
-            lastname: "Davis",
-            age: 37
-        }).then(jack => {
-            let users = [jack];
+    app.post('/tasks/create', middleware.isLoggedIn, middleware.isAuthenticatedUser, mainController.createTask);
 
-            return models.User.create({
-                firstname: "Mary",
-                lastname: "Taylor",
-                age: 21
-            }).then(mary => {
-                users.push(mary);
-                return users;
-            })
-        }).then(users => {
-            models.Project.create({
-                code: 'P-123',
-                name: 'JSA - Branding Development'
-            }).then(p123 => {
-                p123.setWorkers(users);
-            })
+    app.delete('/tasks/destroy', middleware.isLoggedIn, middleware.isAuthenticatedUser, mainController.destroyTask);
 
-            models.Project.create({
-                code: 'P-456',
-                name: 'JSA - DataEntry Development'
-            }).then(p456 => {
-                p456.setWorkers(users);
-            })
-        }).then(() => {
-            res.send("OK");
-        });
-    });
+    app.post('/tasks/comments', middleware.isLoggedIn, middleware.isAuthenticatedUser, mainController.createComments);
 
-    app.get('/getProject', (req, res) => {
-        models.Project.findAll({
-            attributes: ['code', 'name'],
-            include: [{
-                model: models.User, as: 'Workers',
-                attributes: [['firstname', 'name'], 'age'],
-                through: {
-                    attributes: ['projectId', 'userId'],
-                }
-            }]
-        }).then(projects => {
-            res.send(projects);
-        });
-    })
+    app.post('/project', mainController.project);
+
+    app.get('/getProject', mainController.getProject);
+
 };
